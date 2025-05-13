@@ -38,23 +38,27 @@ export type State = {
 
 
 export async function authenticate(
-    prevState: string | undefined,
-    formData: FormData,
-  ) {
-    try {
-      await signIn('credentials', formData);
-    } catch (error) {
-      if (error instanceof AuthError) {
-        switch (error.type) {
-          case 'CredentialsSignin':
-            return 'Invalid credentials.';
-          default:
-            return 'Something went wrong.';
-        }
+  prevState: string | undefined,
+  formData: FormData,
+) {
+  try {
+    await signIn('credentials', formData);
+  } catch (error: any) {
+    // 타입 가드: error가 객체이고 'type' 속성이 있는 경우
+    if (typeof error === 'object' && error !== null && 'type' in error) {
+      const typedError = error as { type: string };
+      switch (typedError.type) {
+        case 'CredentialsSignin':
+          return 'Invalid credentials.';
+        default:
+          return 'Something went wrong.';
       }
-      throw error;
     }
+
+    // 다른 에러는 그대로 throw
+    throw error;
   }
+}
 
 export async function createInvoice(prevState:State, formData: FormData) {
     const validatedFields = CreateInvoice.safeParse({
@@ -116,8 +120,8 @@ export async function updateInvoice(id: string, prevState:State, formData: FormD
     redirect('/dashboard/invoices');
 }
 
-export async function deleteInvoice(id:string) {
-
+export async function deleteInvoice(formData: FormData) {
+    const id = formData.get('id') as string
     await sql`DELETE FROM invoices WHERE id = ${id}`;
     revalidatePath('/dashboard/invoices');
 }
