@@ -26,7 +26,7 @@ export function UpdateInvoice({ id }: { id: string }) {
   );
 }
 
-export function DeleteInvoice(id: string) {
+export function DeleteInvoice({id}: {id: string}) {
   return (
     <form action={deleteInvoice}>
       <input type="hidden" name="id" value={id} />
